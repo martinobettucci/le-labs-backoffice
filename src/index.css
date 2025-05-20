@@ -3,7 +3,44 @@ body {
   font-family: 'Inter', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
   background: #f7f9fb;
   color: #222;
+  min-height: 100vh;
+  min-width: 100vw;
+  overflow: hidden;
+  /* Prevent double scrollbars */
 }
+
+#root {
+  min-height: 100vh;
+  min-width: 100vw;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Custom Scrollbar Styles */
+::-webkit-scrollbar {
+  width: 10px;
+  background: #e3e7ed;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: #b6c2d1;
+  border-radius: 8px;
+  min-height: 40px;
+  transition: background 0.2s;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #8fa1b7;
+}
+::-webkit-scrollbar-corner {
+  background: #e3e7ed;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #b6c2d1 #e3e7ed;
+}
+
 h1, h2, h3, h4, h5 {
   font-family: 'Inter', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
   font-weight: 700;

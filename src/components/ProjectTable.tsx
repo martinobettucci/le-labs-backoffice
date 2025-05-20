@@ -3,7 +3,7 @@ import { DataGrid, GridColDef, GridActionsCellItem } from '@mui/x-data-grid'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { useProjects } from '../context/ProjectContext'
-import { Box, Chip, Tooltip, Typography, IconButton } from '@mui/material'
+import { Box, Chip, Typography } from '@mui/material'
 import dayjs from 'dayjs'
 
 export default function ProjectTable({ onEdit }) {
@@ -45,19 +45,49 @@ export default function ProjectTable({ onEdit }) {
   ]
 
   return (
-    <Box sx={{ height: 600, width: '100%', bgcolor: 'background.paper', borderRadius: 2, boxShadow: 2, p: 2 }}>
+    <Box
+      sx={{
+        flex: 1,
+        minHeight: 0,
+        minWidth: 0,
+        bgcolor: 'background.paper',
+        borderRadius: 2,
+        boxShadow: 2,
+        p: 2,
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden'
+      }}
+    >
       <Typography variant="h5" sx={{ mb: 2 }}>Projects</Typography>
       {error && <Typography color="error">{error}</Typography>}
-      <DataGrid
-        rows={projects}
-        columns={columns}
-        loading={loading}
-        getRowId={(row) => row.id}
-        pageSize={10}
-        rowsPerPageOptions={[10, 25, 50]}
-        disableRowSelectionOnClick
-        autoHeight={false}
-      />
+      <div style={{
+        flex: 1,
+        minHeight: 0,
+        minWidth: 0,
+        overflow: 'auto'
+      }}>
+        <DataGrid
+          rows={projects}
+          columns={columns}
+          loading={loading}
+          getRowId={(row) => row.id}
+          pageSize={10}
+          rowsPerPageOptions={[10, 25, 50]}
+          disableRowSelectionOnClick
+          autoHeight={false}
+          sx={{
+            minHeight: 400,
+            height: '100%',
+            borderRadius: 2,
+            background: '#fff',
+            '& .MuiDataGrid-virtualScroller': {
+              overflowX: 'auto',
+              scrollbarWidth: 'thin'
+            }
+          }}
+        />
+      </div>
     </Box>
   )
 }
