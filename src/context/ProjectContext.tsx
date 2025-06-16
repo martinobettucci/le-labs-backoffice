@@ -3,7 +3,11 @@ import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+// Only create client if environment variables are available
+const supabase = supabaseUrl && supabaseAnonKey 
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : null
 
 export type Project = {
   id: string
@@ -46,23 +50,40 @@ export const ProjectProvider = ({ children }) => {
   const [error, setError] = useState<string | null>(null)
 
   const fetchProjects = useCallback(async () => {
+    if (!supabase) {
+      setError('Supabase client not initialized - check environment variables')
+      setLoading(false)
+      return
+    }
+
     setLoading(true)
     setError(null)
-    const { data, error } = await supabase.from('le_labs_project').select('*').order('last_modified', { ascending: false })
-    if (error) {
-      setError(error.message)
+    
+    try {
+      const { data, error } = await supabase
+        .from('le_labs_project')
+        .select('*')
+        .order('last_modified', { ascending: false })
+      
+      if (error) {
+        setError(`Database error: ${error.message}`)
+        setProjects([])
+      } else {
+        setProjects(
+          (data || []).map((p) => ({
+            ...p,
+            tags: parseJsonArray(p.tags),
+            tile_styles: parseJson(p.tile_styles),
+            links: parseJson(p.links),
+            updates: parseJsonArray(p.updates),
+          }))
+        )
+      }
+    } catch (err) {
+      setError(`Network error: ${err instanceof Error ? err.message : 'Unknown error'}`)
       setProjects([])
-    } else {
-      setProjects(
-        (data || []).map((p) => ({
-          ...p,
-          tags: parseJsonArray(p.tags),
-          tile_styles: parseJson(p.tile_styles),
-          links: parseJson(p.links),
-          updates: parseJsonArray(p.updates),
-        }))
-      )
     }
+    
     setLoading(false)
   }, [])
 
@@ -71,44 +92,91 @@ export const ProjectProvider = ({ children }) => {
   }, [fetchProjects])
 
   const addProject = async (project: Partial<Project>) => {
+    if (!supabase) {
+      setError('Supabase client not initialized')
+      return
+    }
+
     setLoading(true)
     setError(null)
-    // Convert complex fields to JSON strings
-    const payload = {
-      ...project,
-      tags: JSON.stringify(project.tags || []),
-      tile_styles: JSON.stringify(project.tile_styles || {}),
-      links: JSON.stringify(project.links || {}),
-      updates: JSON.stringify(project.updates || []),
+    
+    try {
+      // Convert complex fields to JSON strings
+      const payload = {
+        ...project,
+        tags: JSON.stringify(project.tags || []),
+        tile_styles: JSON.stringify(project.tile_styles || {}),
+        links: JSON.stringify(project.links || {}),
+        updates: JSON.stringify(project.updates || []),
+      }
+      
+      const { error } = await supabase.from('le_labs_project').insert([payload])
+      
+      if (error) {
+        setError(`Failed to add project: ${error.message}`)
+      } else {
+        await fetchProjects()
+      }
+    } catch (err) {
+      setError(`Network error: ${err instanceof Error ? err.message : 'Unknown error'}`)
     }
-    const { error } = await supabase.from('le_labs_project').insert([payload])
-    if (error) setError(error.message)
-    await fetchProjects()
+    
     setLoading(false)
   }
 
   const updateProject = async (id: string, project: Partial<Project>) => {
+    if (!supabase) {
+      setError('Supabase client not initialized')
+      return
+    }
+
     setLoading(true)
     setError(null)
-    const payload = {
-      ...project,
-      tags: project.tags ? JSON.stringify(project.tags) : undefined,
-      tile_styles: project.tile_styles ? JSON.stringify(project.tile_styles) : undefined,
-      links: project.links ? JSON.stringify(project.links) : undefined,
-      updates: project.updates ? JSON.stringify(project.updates) : undefined,
+    
+    try {
+      const payload = {
+        ...project,
+        tags: project.tags ? JSON.stringify(project.tags) : undefined,
+        tile_styles: project.tile_styles ? JSON.stringify(project.tile_styles) : undefined,
+        links: project.links ? JSON.stringify(project.links) : undefined,
+        updates: project.updates ? JSON.stringify(project.updates) : undefined,
+      }
+      
+      const { error } = await supabase.from('le_labs_project').update(payload).eq('id', id)
+      
+      if (error) {
+        setError(`Failed to update project: ${error.message}`)
+      } else {
+        await fetchProjects()
+      }
+    } catch (err) {
+      setError(`Network error: ${err instanceof Error ? err.message : 'Unknown error'}`)
     }
-    const { error } = await supabase.from('le_labs_project').update(payload).eq('id', id)
-    if (error) setError(error.message)
-    await fetchProjects()
+    
     setLoading(false)
   }
 
   const deleteProject = async (id: string) => {
+    if (!supabase) {
+      setError('Supabase client not initialized')
+      return
+    }
+
     setLoading(true)
     setError(null)
-    const { error } = await supabase.from('le_labs_project').delete().eq('id', id)
-    if (error) setError(error.message)
-    await fetchProjects()
+    
+    try {
+      const { error } = await supabase.from('le_labs_project').delete().eq('id', id)
+      
+      if (error) {
+        setError(`Failed to delete project: ${error.message}`)
+      } else {
+        await fetchProjects()
+      }
+    } catch (err) {
+      setError(`Network error: ${err instanceof Error ? err.message : 'Unknown error'}`)
+    }
+    
     setLoading(false)
   }
 
@@ -135,6 +203,7 @@ function parseJson(val: any) {
     return {}
   }
 }
+
 function parseJsonArray(val: any) {
   if (!val) return []
   if (Array.isArray(val)) return val
