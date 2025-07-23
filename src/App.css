@@ -56,6 +56,19 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+/* from app.tsx */
+@keyframes float { /* duplicate */
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(5deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+
+/* -------------- */
+
 @keyframes fadeInUp {
   from {
     opacity: 0;

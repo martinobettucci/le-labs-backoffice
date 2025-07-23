@@ -132,7 +132,7 @@ export default function App() {
           sx={{
             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             position: 'relative',
-            overflow: 'hidden'
+            overflow: 'hidden' 
           }}
         >
           {/* Header background pattern */}
@@ -303,18 +303,6 @@ export default function App() {
           </Alert>
         </Snackbar>
 
-        {/* Global Styles for animations */}
-        <style jsx global>{`
-          @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(5deg); }
-          }
-          
-          @keyframes pulse {
-            0%, 100% { opacity: 0.8; }
-            50% { opacity: 1; }
-          }
-        `}</style>
       </Box>
     </ProjectProvider>
   )
