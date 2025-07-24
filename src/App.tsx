@@ -1,69 +1,30 @@
 import React, { useState } from 'react'
 import { CssBaseline, Box, Button, Snackbar, Alert, Typography, Container, Fade, Slide } from '@mui/material'
-import { Add as AddIcon, Dashboard as DashboardIcon } from '@mui/icons-material'
-import { ProjectProvider } from './context/ProjectContext'
+import { Add as AddIcon, Dashboard as DashboardIcon, Login as LoginIcon } from '@mui/icons-material'
+import { ProjectProvider, useProjects } from './context/ProjectContext'
 import ProjectGrid from './components/ProjectGrid'
 import ProjectForm from './components/ProjectForm'
 import ProjectDetails from './components/ProjectDetails'
 import DashboardStats from './components/DashboardStats'
+import MissingRequirement from './components/MissingRequirement'
+import LoginModal, { OpenModal } from './components/LoginModal'
 import './App.css'
 
 // Environment check
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
+
+
 export default function App() {
   const [formOpen, setFormOpen] = useState(false)
+  const [loginOpen, setLoginOpen] = useState(false)
   const [editData, setEditData] = useState(null)
   const [selectedProject, setSelectedProject] = useState(null)
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' })
 
   if (!supabaseUrl || !supabaseKey) {
-    return (
-      <Box
-        sx={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          p: 3
-        }}
-      >
-        <Box
-          sx={{
-            background: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(20px)',
-            p: 6,
-            borderRadius: 4,
-            boxShadow: '0 25px 50px rgba(0,0,0,0.25)',
-            textAlign: 'center',
-            maxWidth: 500
-          }}
-        >
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: 2, color: '#333' }}>
-            🔐 Setup Required
-          </Typography>
-          <Typography variant="body1" sx={{ mb: 3, color: '#666', lineHeight: 1.6 }}>
-            Connect your Supabase database to get started with the admin dashboard.
-          </Typography>
-          <Button 
-            variant="contained" 
-            size="large"
-            sx={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              px: 4,
-              py: 1.5,
-              borderRadius: 3,
-              textTransform: 'none',
-              fontWeight: 600
-            }}
-          >
-            Connect to Supabase
-          </Button>
-        </Box>
-      </Box>
-    )
+    return <MissingRequirement />
   }
 
   const handleEdit = (project) => {
@@ -81,7 +42,15 @@ export default function App() {
     setEditData(null)
   }
 
-  const showSnackbar = (message, severity = 'success') => {
+  const handleLogin = () => {
+    setLoginOpen(true)
+  }
+
+  const handleCloseLogin = () => {
+    setLoginOpen(false)
+  }
+
+  const showSnackbar = (message: string, severity = 'success') => {
     setSnackbar({ open: true, message, severity })
   }
 
@@ -201,33 +170,38 @@ export default function App() {
               </Fade>
 
               <Slide direction="left" in timeout={800}>
-                <Button
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  onClick={handleAdd}
-                  size="large"
-                  sx={{
-                    background: 'rgba(255, 255, 255, 0.2)',
-                    backdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(255, 255, 255, 0.3)',
-                    color: 'white',
-                    fontWeight: 600,
-                    px: 4,
-                    py: 1.5,
-                    borderRadius: 3,
-                    textTransform: 'none',
-                    fontSize: '1rem',
-                    boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
-                    '&:hover': {
-                      background: 'rgba(255, 255, 255, 0.3)',
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 15px 40px rgba(0,0,0,0.3)'
-                    },
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                  }}
-                >
-                  New Project
-                </Button>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={handleAdd}
+                    size="large"
+                    sx={{
+                      background: 'rgba(255, 255, 255, 0.2)',
+                      backdropFilter: 'blur(20px)',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      color: 'white',
+                      fontWeight: 600,
+                      px: 4,
+                      py: 1.5,
+                      borderRadius: 3,
+                      textTransform: 'none',
+                      fontSize: '1rem',
+                      boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+                      '&:hover': {
+                        background: 'rgba(255, 255, 255, 0.3)',
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 15px 40px rgba(0,0,0,0.3)'
+                      },
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                    }}
+                  >
+                    New Project
+                  </Button>
+                  
+                  <OpenModal handleLogin={handleLogin} />
+                  
+                </Box>
               </Slide>
             </Box>
           </Container>
@@ -282,6 +256,14 @@ export default function App() {
           onClose={handleCloseForm}
           initialData={editData}
           onSuccess={(message) => showSnackbar(message)}
+        />
+
+        {/* Login Modal */}
+        <LoginModal
+          open={loginOpen}
+          onClose={handleCloseLogin}
+          onSuccess={(message) => showSnackbar(message, 'success')}
+          onError={(message) => showSnackbar(message, 'error')}
         />
 
         {/* Snackbar */}

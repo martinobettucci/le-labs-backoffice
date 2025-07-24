@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { createClient, Session } from '@supabase/supabase-js'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -36,6 +36,9 @@ type ProjectContextType = {
   projects: Project[]
   loading: boolean
   error: string | null
+  session: Session | null
+  signInWithEmail: (email: string, password: string) => Promise<void>
+  signOut: () => Promise<void>
   fetchProjects: () => void
   addProject: (project: Partial<Project>) => Promise<void>
   updateProject: (id: string, project: Partial<Project>) => Promise<void>
@@ -48,6 +51,48 @@ export const ProjectProvider = ({ children }) => {
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [session, setSession] = useState<Session | null>(null)
+
+  useEffect(() => {
+
+    if (!supabase) {
+      setError('Supabase client not initialized - check environment variables')
+      setLoading(false)
+      return
+    }
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        console.log('🔐 JWT Token présent:', !!session.access_token)
+        console.log('🔑 Role:', session.user.role)
+        setSession(session)
+      }
+    })
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
+
+  async function signInWithEmail(email: string, password: string) {
+    const { data, error } = await supabase?.auth.signInWithPassword({
+      email: email,
+      password: password,
+    })
+    if (error) {
+      throw error
+    }
+  }
+
+  async function signOut() {
+    const { error } = await supabase?.auth.signOut()
+    if (error) {
+      throw error
+    }
+  }
+
 
   const fetchProjects = useCallback(async () => {
     if (!supabase) {
@@ -88,8 +133,12 @@ export const ProjectProvider = ({ children }) => {
   }, [])
 
   useEffect(() => {
-    fetchProjects()
-  }, [fetchProjects])
+    if (session) {
+      console.log("fetch projects with session: ", session);
+      
+      fetchProjects()
+    }
+  }, [fetchProjects, session])
 
   const addProject = async (project: Partial<Project>) => {
     if (!supabase) {
@@ -181,7 +230,7 @@ export const ProjectProvider = ({ children }) => {
   }
 
   return (
-    <ProjectContext.Provider value={{ projects, loading, error, fetchProjects, addProject, updateProject, deleteProject }}>
+    <ProjectContext.Provider value={{ projects, loading, error, session, signInWithEmail, signOut, fetchProjects, addProject, updateProject, deleteProject }}>
       {children}
     </ProjectContext.Provider>
   )

@@ -10,5 +10,13 @@ export default defineConfig({
   esbuild: {
     // This is a hint; Vite will use esbuild-wasm if available
     // No direct config, but having esbuild-wasm installed triggers fallback
-  }
+  },
+  server: {
+    port: 5173,
+    host: '0.0.0.0',
+    watch: {
+      usePolling: true,
+      interval: 1000,
+    },
+  },
 })
