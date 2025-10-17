@@ -11,11 +11,11 @@ COPY package*.json ./
 # Inject localhost from host
 # RUN echo "172.17.0.1 host.docker.internal" >> /etc/hosts
 
-# Installer les dépendances
-RUN npm install
-
 # Copier le code source
 COPY . .
+
+# Installer les dépendances (après avoir copié le code)
+RUN npm install
 
 # Exposer le port
 EXPOSE 5173

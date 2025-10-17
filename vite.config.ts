@@ -15,8 +15,12 @@ export default defineConfig({
     port: 5173,
     host: '0.0.0.0',
     allowedHosts: ['admin.labs-hub'],
+    hmr: {
+      port: 8080,
+      host: "admin.labs-hub",
+    },
     watch: {
-      usePolling: true,
+      usePolling: false,
       interval: 1000,
     },
   },
