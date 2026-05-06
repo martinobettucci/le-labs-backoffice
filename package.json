@@ -14,7 +14,7 @@
     "@mui/icons-material": "^5.14.0",
     "@mui/material": "^5.17.1",
     "@mui/x-data-grid": "^6.20.1",
-    "@supabase/supabase-js": "^2.39.7",
+    "@supabase/supabase-js": "^2.105.0",
     "autoprefixer": "^10.4.19",
     "dayjs": "^1.11.10",
     "esbuild-wasm": "^0.20.0",
