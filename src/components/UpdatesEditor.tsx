@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
+import type React from 'react'
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Grid, IconButton, TextField, Typography, Paper } from '@mui/material'
 import { Add, Edit, Delete } from '@mui/icons-material'
 import { hashObject } from '../lib/hash'
+import type { ProjectUpdate } from '../context/ProjectContext'
 
-function emptyUpdate() {
+function emptyUpdate(): ProjectUpdate {
   return {
     date: '',
     hash: '',
@@ -13,20 +15,27 @@ function emptyUpdate() {
 }
 
 // Helper to format date for datetime-local input
-function formatDateForInput(dateStr) {
+function formatDateForInput(dateStr: string) {
   if (!dateStr) return ''
   // Try to parse as ISO or fallback
   const d = new Date(dateStr)
   if (isNaN(d.getTime())) return ''
   // Pad to YYYY-MM-DDTHH:mm
-  const pad = (n) => n.toString().padStart(2, '0')
+  const pad = (n: number) => n.toString().padStart(2, '0')
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-export default function UpdatesEditor({ open, onClose, value = [], onSave }) {
-  const [updates, setUpdates] = useState(Array.isArray(value) ? value : [])
+interface UpdatesEditorProps {
+  open: boolean
+  onClose: () => void
+  value?: ProjectUpdate[]
+  onSave: (v: ProjectUpdate[]) => void
+}
+
+export default function UpdatesEditor({ open, onClose, value = [], onSave }: UpdatesEditorProps) {
+  const [updates, setUpdates] = useState<ProjectUpdate[]>(Array.isArray(value) ? value : [])
   const [editIdx, setEditIdx] = useState(-1)
-  const [editUpdate, setEditUpdate] = useState(emptyUpdate())
+  const [editUpdate, setEditUpdate] = useState<ProjectUpdate>(emptyUpdate())
 
   // Sync updates state with value prop when dialog opens or value changes
   useEffect(() => {
@@ -35,10 +44,9 @@ export default function UpdatesEditor({ open, onClose, value = [], onSave }) {
       setEditIdx(-1)
       setEditUpdate(emptyUpdate())
     }
-    // eslint-disable-next-line
   }, [open, value])
 
-  const handleEdit = (idx) => {
+  const handleEdit = (idx: number) => {
     setEditIdx(idx)
     // Format date for input
     setEditUpdate({
@@ -47,7 +55,7 @@ export default function UpdatesEditor({ open, onClose, value = [], onSave }) {
     })
   }
 
-  const handleDelete = (idx) => {
+  const handleDelete = (idx: number) => {
     setUpdates(updates.filter((_, i) => i !== idx))
   }
 
@@ -56,7 +64,7 @@ export default function UpdatesEditor({ open, onClose, value = [], onSave }) {
     setEditUpdate(emptyUpdate())
   }
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setEditUpdate((u) => ({
       ...u,
@@ -65,7 +73,7 @@ export default function UpdatesEditor({ open, onClose, value = [], onSave }) {
   }
 
   const handleSaveEdit = () => {
-    let newUpdates = [...updates]
+    const newUpdates = [...updates]
     // Store as ISO string if date is present
     const updateToSave = {
       ...editUpdate,

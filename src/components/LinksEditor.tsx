@@ -14,7 +14,7 @@ const DEFAULT_LINKS = [
   { key: 'documentation', label: 'Documentation', placeholder: 'https://docs.example.com/...' }
 ]
 
-function isValidUrl(url) {
+function isValidUrl(url: string) {
   try {
     if (!url) return true
     new URL(url)
@@ -24,8 +24,20 @@ function isValidUrl(url) {
   }
 }
 
-export default function LinksEditor({ open, onClose, value, onSave }) {
-  const [links, setLinks] = useState(() => {
+interface LinkRow {
+  key: string
+  value: string
+}
+
+interface LinksEditorProps {
+  open: boolean
+  onClose: () => void
+  value: Record<string, string> | undefined
+  onSave: (v: Record<string, string>) => void
+}
+
+export default function LinksEditor({ open, onClose, value, onSave }: LinksEditorProps) {
+  const [links, setLinks] = useState<LinkRow[]>(() => {
     if (value && typeof value === 'object') {
       return Object.entries(value).map(([key, val]) => ({ key, value: val }))
     }
@@ -68,11 +80,11 @@ export default function LinksEditor({ open, onClose, value, onSave }) {
     setError('')
   }
 
-  const handleChange = (idx, field, val) => {
+  const handleChange = (idx: number, field: keyof LinkRow, val: string) => {
     setLinks(links.map((l, i) => i === idx ? { ...l, [field]: val } : l))
   }
 
-  const handleDelete = (idx) => {
+  const handleDelete = (idx: number) => {
     setLinks(links.filter((_, i) => i !== idx))
   }
 
@@ -85,7 +97,7 @@ export default function LinksEditor({ open, onClose, value, onSave }) {
       }
     }
     setError('')
-    const obj = {}
+    const obj: Record<string, string> = {}
     links.forEach(({ key, value }) => {
       if (key && value) obj[key] = value
     })

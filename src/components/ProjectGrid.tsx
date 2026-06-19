@@ -1,42 +1,47 @@
-import React, { useState } from 'react'
-import { 
-  Box, 
-  Card, 
-  CardContent, 
-  CardMedia, 
-  Typography, 
-  Chip, 
-  IconButton, 
-  Menu, 
-  MenuItem, 
-  Avatar, 
+import { useState } from 'react'
+import type React from 'react'
+import {
+  Box,
+  Card,
+  CardContent,
+  CardMedia,
+  Typography,
+  Chip,
+  IconButton,
+  Menu,
+  MenuItem,
   Stack,
   Skeleton,
   InputBase,
   Paper,
   ToggleButton,
   ToggleButtonGroup,
-  Fade,
   Zoom
 } from '@mui/material'
-import { 
-  MoreVert as MoreIcon, 
-  Edit as EditIcon, 
+import {
+  MoreVert as MoreIcon,
+  Edit as EditIcon,
   Delete as DeleteIcon,
   Star as StarIcon,
-  StarBorder as StarBorderIcon,
   Search as SearchIcon,
   GridView as GridIcon,
   List as ListIcon,
   CalendarToday as DateIcon
 } from '@mui/icons-material'
 import { useProjects } from '../context/ProjectContext'
+import type { Project } from '../context/ProjectContext'
 import dayjs from 'dayjs'
 
-export default function ProjectGrid({ onEdit, onSelect, selectedProject }) {
+interface ProjectGridProps {
+  onEdit: (p: Project) => void
+  onSelect: (p: Project) => void
+  selectedProject: Project | null
+}
+
+export default function ProjectGrid({ onEdit, onSelect, selectedProject }: ProjectGridProps) {
   const { projects, loading, deleteProject } = useProjects()
-  const [anchorEl, setAnchorEl] = useState(null)
-  const [selectedProjectId, setSelectedProjectId] = useState(null)
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [viewMode, setViewMode] = useState('grid')
 
@@ -46,7 +51,7 @@ export default function ProjectGrid({ onEdit, onSelect, selectedProject }) {
     (project.tags || []).some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
   )
 
-  const handleMenuOpen = (event, projectId) => {
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, projectId: string) => {
     event.stopPropagation()
     setAnchorEl(event.currentTarget)
     setSelectedProjectId(projectId)
@@ -59,20 +64,20 @@ export default function ProjectGrid({ onEdit, onSelect, selectedProject }) {
 
   const handleEdit = () => {
     const project = projects.find(p => p.id === selectedProjectId)
-    onEdit(project)
+    if (project) onEdit(project)
     handleMenuClose()
   }
 
   const handleDelete = () => {
     const project = projects.find(p => p.id === selectedProjectId)
-    if (window.confirm(`Delete "${project?.title}"?`)) {
-      deleteProject(selectedProjectId)
+    if (project && window.confirm(`Delete "${project.title}"?`)) {
+      deleteProject(project.id)
     }
     handleMenuClose()
   }
 
-  const getStatusColor = (status) => {
-    const colors = {
+  const getStatusColor = (status: string) => {
+    const colors: Record<string, string> = {
       'active': '#10B981',
       'completed': '#6366F1',
       'on-hold': '#F59E0B',
@@ -159,7 +164,7 @@ export default function ProjectGrid({ onEdit, onSelect, selectedProject }) {
             <ToggleButtonGroup
               value={viewMode}
               exclusive
-              onChange={(e, newView) => newView && setViewMode(newView)}
+              onChange={(_e, newView) => newView && setViewMode(newView)}
               size="small"
             >
               <ToggleButton value="grid">

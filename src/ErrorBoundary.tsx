@@ -7,8 +7,8 @@ type ErrorBoundaryProps = {
 
 type ErrorBoundaryState = {
   hasError: boolean
-  error: any
-  errorInfo: any
+  error: Error | null
+  errorInfo: React.ErrorInfo | null
 }
 
 export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
@@ -17,11 +17,11 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     this.state = { hasError: false, error: null, errorInfo: null }
   }
 
-  static getDerivedStateFromError(error: any) {
+  static getDerivedStateFromError(): Partial<ErrorBoundaryState> {
     return { hasError: true }
   }
 
-  componentDidCatch(error: any, errorInfo: any) {
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('Error caught by boundary:', error, errorInfo)
     this.setState({
       error,

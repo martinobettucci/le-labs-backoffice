@@ -23,3 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# Sandbox/corporate proxy CA certs (do not commit)
+docker/extra-cas/*.crt

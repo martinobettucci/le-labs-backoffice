@@ -1,22 +1,25 @@
 /**
- * Minimal MD5 implementation (https://github.com/blueimp/JavaScript-MD5, MIT, trimmed for brevity)
+ * Minimal MD5 implementation (https://github.com/blueimp/JavaScript-MD5, MIT, trimmed)
  * and stable JSON stringify for consistent hashing.
  */
-export function md5cycle(x: number[], k: number[]) {
-  let [a, b, c, d] = x
-  function ff(a, b, c, d, x, s, t) {
+function md5cycle(x: number[], k: number[]) {
+  let a = x[0]
+  let b = x[1]
+  let c = x[2]
+  let d = x[3]
+  function ff(a: number, b: number, c: number, d: number, x: number, s: number, t: number) {
     a = a + ((b & c) | (~b & d)) + x + t
     return ((a << s) | (a >>> (32 - s))) + b
   }
-  function gg(a, b, c, d, x, s, t) {
+  function gg(a: number, b: number, c: number, d: number, x: number, s: number, t: number) {
     a = a + ((b & d) | (c & ~d)) + x + t
     return ((a << s) | (a >>> (32 - s))) + b
   }
-  function hh(a, b, c, d, x, s, t) {
+  function hh(a: number, b: number, c: number, d: number, x: number, s: number, t: number) {
     a = a + (b ^ c ^ d) + x + t
     return ((a << s) | (a >>> (32 - s))) + b
   }
-  function ii(a, b, c, d, x, s, t) {
+  function ii(a: number, b: number, c: number, d: number, x: number, s: number, t: number) {
     a = a + (c ^ (b | ~d)) + x + t
     return ((a << s) | (a >>> (32 - s))) + b
   }
@@ -89,44 +92,43 @@ export function md5cycle(x: number[], k: number[]) {
   x[2] = (x[2] + c) | 0
   x[3] = (x[3] + d) | 0
 }
-function md5blk(s: string) {
-  let md5blks = [], i
-  for (i = 0; i < 64; i += 4) {
-    md5blks[i >> 2] = s.charCodeAt(i) +
+
+function md5blk(s: string): number[] {
+  const md5blks: number[] = []
+  for (let i = 0; i < 64; i += 4) {
+    md5blks[i >> 2] =
+      s.charCodeAt(i) +
       (s.charCodeAt(i + 1) << 8) +
       (s.charCodeAt(i + 2) << 16) +
       (s.charCodeAt(i + 3) << 24)
   }
   return md5blks
 }
-function md5blk_array(a: number[]) {
-  let md5blks = [], i
-  for (i = 0; i < 64; i += 4) {
-    md5blks[i >> 2] = a[i] +
-      (a[i + 1] << 8) +
-      (a[i + 2] << 16) +
-      (a[i + 3] << 24)
+
+function md5blk_array(a: number[]): number[] {
+  const md5blks: number[] = []
+  for (let i = 0; i < 64; i += 4) {
+    md5blks[i >> 2] = a[i] + (a[i + 1] << 8) + (a[i + 2] << 16) + (a[i + 3] << 24)
   }
   return md5blks
 }
-function md51(s: string) {
-  let n = s.length,
-    state = [1732584193, -271733879, -1732584194, 271733878],
-    i, length, tail, tmp, lo, hi
+
+function md51(input: string): number[] {
+  const n = input.length
+  const state = [1732584193, -271733879, -1732584194, 271733878]
+  let i: number
   for (i = 64; i <= n; i += 64) {
-    md5cycle(state, md5blk(s.substring(i - 64, i)))
+    md5cycle(state, md5blk(input.substring(i - 64, i)))
   }
-  s = s.substring(i - 64)
-  tail = new Array(64).fill(0)
-  for (i = 0; i < s.length; i++)
-    tail[i] = s.charCodeAt(i)
+  const s = input.substring(i - 64)
+  const tail: number[] = new Array(64).fill(0)
+  for (i = 0; i < s.length; i++) tail[i] = s.charCodeAt(i)
   tail[i] = 0x80
   if (i > 55) {
     md5cycle(state, md5blk_array(tail))
     tail.fill(0)
   }
-  // append length in bits
-  let bitLen = n * 8
+  const bitLen = n * 8
   tail[56] = bitLen & 0xff
   tail[57] = (bitLen >>> 8) & 0xff
   tail[58] = (bitLen >>> 16) & 0xff
@@ -134,31 +136,42 @@ function md51(s: string) {
   md5cycle(state, md5blk_array(tail))
   return state
 }
-function rhex(n: number) {
-  let s = '', j
-  for (j = 0; j < 4; j++)
+
+function rhex(n: number): string {
+  let s = ''
+  for (let j = 0; j < 4; j++) {
     s += ('0' + ((n >> (j * 8)) & 0xff).toString(16)).slice(-2)
+  }
   return s
 }
-function hex(x: number[]) {
-  for (let i = 0; i < x.length; i++)
-    x[i] = parseInt(rhex(x[i]), 16)
-  return x.map(n => rhex(n)).join('')
+
+function hex(x: number[]): string {
+  return x.map((n) => rhex(n)).join('')
 }
-export function md5(s: string) {
+
+export function md5(s: string): string {
   return hex(md51(s))
 }
 
 // Stable JSON stringify (sorted keys, handles arrays/objects)
-export function stableStringify(obj: any): string {
+export function stableStringify(obj: unknown): string {
   if (obj === null || typeof obj !== 'object') return JSON.stringify(obj)
   if (Array.isArray(obj)) return `[${obj.map(stableStringify).join(',')}]`
-  return '{' + Object.keys(obj).sort().map(k => JSON.stringify(k) + ':' + stableStringify(obj[k])).join(',') + '}'
+  const record = obj as Record<string, unknown>
+  return (
+    '{' +
+    Object.keys(record)
+      .sort()
+      .map((k) => JSON.stringify(k) + ':' + stableStringify(record[k]))
+      .join(',') +
+    '}'
+  )
 }
 
 // Hash any object, excluding a given field (e.g. 'hash')
-export function hashObject(obj: any, excludeField: string = 'hash'): string {
+export function hashObject(obj: unknown, excludeField: string = 'hash'): string {
   if (!obj || typeof obj !== 'object') return md5(stableStringify(obj))
-  const { [excludeField]: _, ...rest } = obj
+  const rest: Record<string, unknown> = { ...(obj as Record<string, unknown>) }
+  delete rest[excludeField]
   return md5(stableStringify(rest))
 }

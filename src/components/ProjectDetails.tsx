@@ -1,6 +1,5 @@
-import React from 'react'
-import { 
-  Box, 
+import {
+  Box,
   Card, 
   CardContent, 
   Typography, 
@@ -19,7 +18,7 @@ import {
   Link as LinkIcon,
   Update as UpdateIcon
 } from '@mui/icons-material'
-import { Project } from '../context/ProjectContext'
+import type { Project } from '../context/ProjectContext'
 import dayjs from 'dayjs'
 
 interface ProjectDetailsProps {
@@ -28,8 +27,8 @@ interface ProjectDetailsProps {
 }
 
 export default function ProjectDetails({ project, onClose }: ProjectDetailsProps) {
-  const getStatusColor = (status) => {
-    const colors = {
+  const getStatusColor = (status: string) => {
+    const colors: Record<string, string> = {
       'active': '#10B981',
       'completed': '#6366F1',
       'on-hold': '#F59E0B',

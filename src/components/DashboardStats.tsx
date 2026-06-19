@@ -79,7 +79,7 @@ export default function DashboardStats() {
         gap: 3
       }}
     >
-      {statCards.map((stat, index) => (
+      {statCards.map((stat) => (
         <Card
           key={stat.title}
           sx={{

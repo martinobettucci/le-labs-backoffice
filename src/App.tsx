@@ -1,33 +1,28 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { CssBaseline, Box, Button, Snackbar, Alert, Typography, Container, Fade, Slide } from '@mui/material'
-import { Add as AddIcon, Dashboard as DashboardIcon, Login as LoginIcon } from '@mui/icons-material'
-import { ProjectProvider, useProjects } from './context/ProjectContext'
+import type { AlertColor } from '@mui/material'
+import { Add as AddIcon, Dashboard as DashboardIcon } from '@mui/icons-material'
+import { ProjectProvider } from './context/ProjectContext'
+import type { Project } from './context/ProjectContext'
 import ProjectGrid from './components/ProjectGrid'
 import ProjectForm from './components/ProjectForm'
 import ProjectDetails from './components/ProjectDetails'
 import DashboardStats from './components/DashboardStats'
-import MissingRequirement from './components/MissingRequirement'
 import LoginModal, { OpenModal } from './components/LoginModal'
 import './App.css'
-
-// Environment check
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-
-
 
 export default function App() {
   const [formOpen, setFormOpen] = useState(false)
   const [loginOpen, setLoginOpen] = useState(false)
-  const [editData, setEditData] = useState(null)
-  const [selectedProject, setSelectedProject] = useState(null)
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' })
+  const [editData, setEditData] = useState<Project | null>(null)
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: AlertColor }>({
+    open: false,
+    message: '',
+    severity: 'success',
+  })
 
-  if (!supabaseUrl || !supabaseKey) {
-    return <MissingRequirement />
-  }
-
-  const handleEdit = (project) => {
+  const handleEdit = (project: Project) => {
     setEditData(project)
     setFormOpen(true)
   }
@@ -50,7 +45,7 @@ export default function App() {
     setLoginOpen(false)
   }
 
-  const showSnackbar = (message: string, severity = 'success') => {
+  const showSnackbar = (message: string, severity: AlertColor = 'success') => {
     setSnackbar({ open: true, message, severity })
   }
 
@@ -172,6 +167,7 @@ export default function App() {
               <Slide direction="left" in timeout={800}>
                 <Box sx={{ display: 'flex', gap: 2 }}>
                   <Button
+                    data-testid="new-project"
                     variant="contained"
                     startIcon={<AddIcon />}
                     onClick={handleAdd}

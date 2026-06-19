@@ -1,0 +1,24 @@
+# LE LABS back-office — PROD image (static build served by nginx, which also
+# reverse-proxies /supabase -> the Supabase gateway, same-origin).
+FROM node:22-bookworm-slim AS build
+
+WORKDIR /app
+
+# Trust optional extra CA certs (e.g. a corporate / egress TLS proxy). No-op
+# when docker/extra-cas/ holds no *.crt (the default).
+COPY docker/extra-cas/ /opt/extra-cas/
+RUN cat /opt/extra-cas/*.crt > /opt/extra-cas.pem 2>/dev/null || touch /opt/extra-cas.pem
+ENV NODE_EXTRA_CA_CERTS=/opt/extra-cas.pem
+
+COPY package*.json ./
+RUN npm ci --no-audit --no-fund
+COPY . .
+
+ARG VITE_SUPABASE_ANON_KEY
+ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
+RUN npm run build
+
+FROM nginx:1.27-alpine
+COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 80
